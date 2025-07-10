@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="flowcraft-error-handler.js"></script>
+</head>
+<body>
+    <h1>Database Test</h1>
+    <button onclick="testTables()">Test Tables</button>
+    <div id="results"></div>
+
+    <script>
+        // Initialize Supabase client
+        const supabaseClient = supabase.createClient(
+            FlowCraftConfig.supabase.url,
+            FlowCraftConfig.supabase.anonKey
+        );
+        
+        // Make it globally available
+        window.supabaseClient = supabaseClient;
+        
+        // Initialize error handler
+        window.FlowCraftErrorHandler = new FlowCraftErrorHandler();
+        
+        // Wait for script to load completely
+        window.addEventListener('load', function() {
+            if (typeof FlowCraftErrorHandler === 'undefined') {
+                console.error('FlowCraftErrorHandler not loaded properly');
+                document.getElementById('results').innerHTML = '<p>❌ FlowCraftErrorHandler not loaded</p>';
+            }
+        });
+
+        async function testTables() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testing Database Tables...</h2>';
+            
+            try {
+                // Test project_members table
+                const membersResult = await supabaseClient.from('project_members').select('*').limit(1);
+                results.innerHTML += `<p>✅ project_members table: ${membersResult.error ? 'ERROR: ' + membersResult.error.message : 'OK'}</p>`;
+                
+                // Test project_invitations table
+                const invitationsResult = await supabaseClient.from('project_invitations').select('*').limit(1);
+                results.innerHTML += `<p>✅ project_invitations table: ${invitationsResult.error ? 'ERROR: ' + invitationsResult.error.message : 'OK'}</p>`;
+                
+                // Test working_calendar table
+                const calendarResult = await supabaseClient.from('working_calendar').select('*').limit(1);
+                results.innerHTML += `<p>✅ working_calendar table: ${calendarResult.error ? 'ERROR: ' + calendarResult.error.message : 'OK'}</p>`;
+                
+                // Test process_status_history table
+                const historyResult = await supabaseClient.from('process_status_history').select('*').limit(1);
+                results.innerHTML += `<p>✅ process_status_history table: ${historyResult.error ? 'ERROR: ' + historyResult.error.message : 'OK'}</p>`;
+                
+                // Test checkProjectAccess function
+                results.innerHTML += '<h3>Testing checkProjectAccess function...</h3>';
+                const accessResult = await window.FlowCraftErrorHandler.checkProjectAccess('test-project-id');
+                results.innerHTML += `<p>✅ checkProjectAccess result: ${JSON.stringify(accessResult)}</p>`;
+                
+            } catch (error) {
+                results.innerHTML += `<p>❌ Error: ${error.message}</p>`;
+                console.error('Test error:', error);
+            }
+        }
+    </script>
+</body>
+</html>

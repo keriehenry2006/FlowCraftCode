@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Przygotowanie do wdrożenia - FlowCraft</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            background: #f7fafc;
+            color: #2d3748;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 30px;
+        }
+        
+        .section {
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .checklist {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .checklist li {
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+        }
+        
+        .checklist li:last-child {
+            border-bottom: none;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            margin-right: 15px;
+            cursor: pointer;
+        }
+        
+        .file-list {
+            background: #f7fafc;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .file-list code {
+            display: block;
+            padding: 5px 0;
+            color: #4a5568;
+        }
+        
+        .warning {
+            background: #fff5f5;
+            border: 1px solid #feb2b2;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .success {
+            background: #f0fff4;
+            border: 1px solid #9ae6b4;
+            color: #2f855a;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        
+        .button {
+            background: #667eea;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 20px;
+        }
+        
+        .button:hover {
+            background: #5a67d8;
+        }
+        
+        code {
+            background: #edf2f7;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🚀 Przygotowanie do wdrożenia FlowCraft</h1>
+    
+    <div class="section">
+        <h2>📁 Pliki do wrzucenia na hosting</h2>
+        <div class="file-list">
+            <code>✅ ProcessDiagramApp.html → zmień nazwę na index.html (ekran logowania)</code>
+            <code>✅ Diagram.html - główna aplikacja (po zalogowaniu)</code>
+            <code>✅ confirm.html - strona potwierdzenia email</code>
+            <code>✅ reset.html - strona resetu hasła</code>
+            <code>✅ FlowCraft.png - logo</code>
+            <code>📌 import_test_data.html - (opcjonalnie - narzędzie do importu)</code>
+            <code>📌 test_integration.html - (opcjonalnie - testy)</code>
+        </div>
+        
+        <div class="warning">
+            <strong>NIE wrzucaj na hosting:</strong>
+            <ul>
+                <li>Plików SQL (*.sql)</li>
+                <li>Plików Excel (*.xlsx)</li>
+                <li>Plików README (*.md)</li>
+                <li>Ten plik (prepare_deployment.html)</li>
+            </ul>
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>✅ Lista kontrolna przed wdrożeniem</h2>
+        <ul class="checklist">
+            <li>
+                <input type="checkbox" class="checkbox" id="check1">
+                <label for="check1">Zaktualizowałem <code>SUPABASE_URL</code> w plikach confirm.html i reset.html</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check2">
+                <label for="check2">Zaktualizowałem <code>SUPABASE_ANON_KEY</code> w plikach confirm.html i reset.html</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check3">
+                <label for="check3">Sprawdziłem, że ProcessDiagramApp.html i Diagram.html mają prawidłowe dane Supabase</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check4">
+                <label for="check4">Skonfigurowałem SMTP w Supabase (Resend)</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check5">
+                <label for="check5">Zaktualizowałem szablony emaili w Supabase</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check6">
+                <label for="check6">Dodałem URL-e przekierowań w Supabase</label>
+            </li>
+            <li>
+                <input type="checkbox" class="checkbox" id="check7">
+                <label for="check7">Mam konto na hostingu (Vercel/Netlify/inne)</label>
+            </li>
+        </ul>
+    </div>
+    
+    <div class="section">
+        <h2>🌐 Zalecane darmowe hostingi</h2>
+        <ol>
+            <li><strong>Vercel</strong> - <a href="https://vercel.com" target="_blank">vercel.com</a> - najłatwiejszy, drag & drop</li>
+            <li><strong>Netlify</strong> - <a href="https://netlify.com" target="_blank">netlify.com</a> - podobnie łatwy</li>
+            <li><strong>GitHub Pages</strong> - wymaga repozytorium Git</li>
+            <li><strong>Surge.sh</strong> - <a href="https://surge.sh" target="_blank">surge.sh</a> - przez terminal</li>
+        </ol>
+    </div>
+    
+    <div class="section">
+        <h2>📝 Struktura folderów do wdrożenia</h2>
+        <p>Utwórz folder <code>public/</code> i umieść w nim:</p>
+        <div class="file-list">
+            <code>public/</code>
+            <code>├── index.html (zmień nazwę ProcessDiagramApp.html)</code>
+            <code>├── Diagram.html</code>
+            <code>├── confirm.html</code>
+            <code>├── reset.html</code>
+            <code>└── FlowCraft.png</code>
+        </div>
+        
+        <div class="success">
+            <strong>Wskazówka:</strong> ProcessDiagramApp.html to ekran logowania, więc powinien być index.html. Po zalogowaniu użytkownicy są przekierowywani do Diagram.html.
+        </div>
+    </div>
+    
+    <div class="section">
+        <h2>🔧 Po wdrożeniu</h2>
+        <ol>
+            <li>Przetestuj rejestrację nowego użytkownika</li>
+            <li>Sprawdź, czy email z potwierdzeniem przychodzi</li>
+            <li>Kliknij link i sprawdź, czy potwierdzenie działa</li>
+            <li>Przetestuj reset hasła</li>
+            <li>Sprawdź główną funkcjonalność aplikacji</li>
+        </ol>
+    </div>
+    
+    <button class="button" onclick="checkReadiness()">
+        Sprawdź gotowość do wdrożenia
+    </button>
+    
+    <script>
+        function checkReadiness() {
+            const checkboxes = document.querySelectorAll('.checkbox');
+            const checked = Array.from(checkboxes).filter(cb => cb.checked).length;
+            const total = checkboxes.length;
+            
+            if (checked === total) {
+                alert('✅ Świetnie! Wszystko gotowe do wdrożenia!\n\nMożesz teraz wrzucić pliki na hosting.');
+            } else {
+                alert(`⚠️ Wykonano ${checked} z ${total} kroków.\n\nDokończ pozostałe kroki przed wdrożeniem.`);
+            }
+        }
+        
+        // Zapisz stan checkboxów w localStorage
+        document.querySelectorAll('.checkbox').forEach(checkbox => {
+            // Wczytaj stan
+            const saved = localStorage.getItem(checkbox.id);
+            if (saved === 'true') checkbox.checked = true;
+            
+            // Zapisz przy zmianie
+            checkbox.addEventListener('change', function() {
+                localStorage.setItem(this.id, this.checked);
+            });
+        });
+    </script>
+</body>
+</html> 

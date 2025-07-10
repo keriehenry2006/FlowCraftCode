@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Supabase Connection Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="flowcraft-error-handler.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .result { margin: 10px 0; padding: 10px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+        .error { background-color: #f8d7da; color: #721c24; }
+        .warning { background-color: #fff3cd; color: #856404; }
+        button { padding: 10px 20px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Supabase Connection Test</h1>
+    <button onclick="testConnection()">Test Connection</button>
+    <button onclick="testAuth()">Test Auth</button>
+    <button onclick="testErrorHandler()">Test Error Handler</button>
+    <div id="results"></div>
+
+    <script>
+        console.log('Loading test script...');
+        
+        let supabaseClient;
+        
+        // Test basic configuration
+        function testConnection() {
+            const results = document.getElementById('results');
+            results.innerHTML = '<h2>Testing Supabase Connection...</h2>';
+            
+            try {
+                // Test config loading
+                console.log('FlowCraftConfig available:', typeof FlowCraftConfig);
+                console.log('FlowCraftSecurity available:', typeof FlowCraftSecurity);
+                
+                if (typeof FlowCraftConfig === 'undefined') {
+                    results.innerHTML += '<div class="error">❌ FlowCraftConfig not loaded</div>';
+                    return;
+                }
+                
+                if (typeof FlowCraftSecurity === 'undefined') {
+                    results.innerHTML += '<div class="error">❌ FlowCraftSecurity not loaded</div>';
+                    return;
+                }
+                
+                results.innerHTML += '<div class="success">✅ Config loaded successfully</div>';
+                
+                // Get config
+                const config = FlowCraftSecurity.getSupabaseConfig();
+                results.innerHTML += `<div class="success">✅ Supabase URL: ${config.url}</div>`;
+                results.innerHTML += `<div class="success">✅ API Key: ${config.anonKey.substring(0, 20)}...</div>`;
+                
+                // Create client
+                supabaseClient = supabase.createClient(config.url, config.anonKey);
+                window.supabaseClient = supabaseClient;
+                
+                results.innerHTML += '<div class="success">✅ Supabase client created</div>';
+                
+                // Test basic query
+                testBasicQuery();
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error: ${error.message}</div>`;
+                console.error('Connection test error:', error);
+            }
+        }
+        
+        async function testBasicQuery() {
+            const results = document.getElementById('results');
+            
+            try {
+                // Test projects table
+                const { data, error } = await supabaseClient.from('projects').select('*').limit(1);
+                
+                if (error) {
+                    results.innerHTML += `<div class="error">❌ Query error: ${error.message}</div>`;
+                } else {
+                    results.innerHTML += '<div class="success">✅ Projects table accessible</div>';
+                }
+                
+                // Test new tables
+                const tables = ['project_members', 'project_invitations', 'working_calendar', 'process_status_history'];
+                
+                for (const table of tables) {
+                    const { data, error } = await supabaseClient.from(table).select('*').limit(1);
+                    if (error) {
+                        results.innerHTML += `<div class="error">❌ ${table}: ${error.message}</div>`;
+                    } else {
+                        results.innerHTML += `<div class="success">✅ ${table} accessible</div>`;
+                    }
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Query error: ${error.message}</div>`;
+                console.error('Query test error:', error);
+            }
+        }
+        
+        async function testAuth() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<h2>Testing Authentication...</h2>';
+            
+            try {
+                if (!supabaseClient) {
+                    results.innerHTML += '<div class="error">❌ Please run connection test first</div>';
+                    return;
+                }
+                
+                const { data, error } = await supabaseClient.auth.getUser();
+                
+                if (error) {
+                    results.innerHTML += `<div class="warning">⚠️ Not authenticated: ${error.message}</div>`;
+                } else if (data.user) {
+                    results.innerHTML += `<div class="success">✅ Authenticated as: ${data.user.email}</div>`;
+                } else {
+                    results.innerHTML += '<div class="warning">⚠️ No user session</div>';
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Auth error: ${error.message}</div>`;
+                console.error('Auth test error:', error);
+            }
+        }
+        
+        function testErrorHandler() {
+            const results = document.getElementById('results');
+            results.innerHTML += '<h2>Testing Error Handler...</h2>';
+            
+            try {
+                console.log('FlowCraftErrorHandler available:', typeof FlowCraftErrorHandler);
+                
+                if (typeof FlowCraftErrorHandler === 'undefined') {
+                    results.innerHTML += '<div class="error">❌ FlowCraftErrorHandler class not defined</div>';
+                    return;
+                }
+                
+                // Try to create instance
+                const errorHandler = new FlowCraftErrorHandler();
+                window.FlowCraftErrorHandler = errorHandler;
+                
+                results.innerHTML += '<div class="success">✅ FlowCraftErrorHandler instance created</div>';
+                
+                // Test basic methods
+                const methods = ['showNotification', 'sanitizeInput', 'validateEmail', 'checkProjectAccess'];
+                
+                for (const method of methods) {
+                    if (typeof errorHandler[method] === 'function') {
+                        results.innerHTML += `<div class="success">✅ Method ${method} available</div>`;
+                    } else {
+                        results.innerHTML += `<div class="error">❌ Method ${method} missing</div>`;
+                    }
+                }
+                
+            } catch (error) {
+                results.innerHTML += `<div class="error">❌ Error Handler error: ${error.message}</div>`;
+                console.error('Error handler test error:', error);
+            }
+        }
+        
+        // Auto-run on load
+        window.addEventListener('load', function() {
+            setTimeout(testConnection, 500);
+        });
+    </script>
+</body>
+</html>

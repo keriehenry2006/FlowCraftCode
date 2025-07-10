@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset hasła - FlowCraft</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="flowcraft-error-handler.js"></script>
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="csrf-token" content=""><!-- CSRF token will be set by JavaScript -->
+    <script src="flowcraft-error-handler.js"></script>
+    <style>
+        :root {
+            /* FlowCraft 2025 Futuristic Palette */
+            --flowcraft-primary: #00D4FF;
+            --flowcraft-primary-dark: #0099CC;
+            --flowcraft-secondary: #FF006E;
+            --flowcraft-secondary-dark: #CC0055;
+            --flowcraft-accent: #8B5CF6;
+            --flowcraft-success: #39FF14;
+            --flowcraft-danger: #FF006E;
+            --flowcraft-warning: #FFBE0B;
+            --flowcraft-dark: #0A0A0F;
+            --flowcraft-grey: #6B7280;
+            --flowcraft-light-grey: #1A1A2E;
+            --flowcraft-white: #FFFFFF;
+            
+            /* 2025 Design Variables */
+            --fc-dark-primary: #0A0A0F;
+            --fc-dark-secondary: #1A1A2E;
+            --fc-dark-accent: #16213E;
+            --fc-neon-primary: #00D4FF;
+            --fc-neon-secondary: #FF006E;
+            --fc-neon-accent: #8B5CF6;
+            --fc-neon-warning: #FFBE0B;
+            --fc-neon-success: #39FF14;
+            --fc-text-primary: #FFFFFF;
+            --fc-text-secondary: #B4B4B8;
+            --fc-text-muted: #6B7280;
+            --fc-surface: rgba(26, 26, 46, 0.8);
+            --fc-surface-light: rgba(255, 255, 255, 0.1);
+            --fc-border: rgba(0, 212, 255, 0.3);
+            
+            /* Gradient Variables */
+            --flowcraft-gradient-bg: linear-gradient(135deg, #0A0A0F 0%, #1A1A2E 25%, #16213E 75%, #0A0A0F 100%);
+            
+            /* Shadow Variables - 2025 Neon Effects */
+            --fc-glow-primary: 0 0 20px rgba(0, 212, 255, 0.5);
+            --fc-glow-secondary: 0 0 30px rgba(255, 0, 110, 0.3);
+            --fc-shadow-brutal: 8px 8px 0px rgba(0, 212, 255, 0.2);
+            --fc-shadow-deep: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: var(--flowcraft-gradient-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--fc-text-primary);
+            position: relative;
+        }
+
+        /* Grid background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            background: var(--fc-surface);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--fc-border);
+            border-radius: 0; /* Brutalist */
+            box-shadow: var(--fc-shadow-brutal), var(--fc-shadow-deep);
+            padding: 48px;
+            max-width: 480px;
+            width: 100%;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .container:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--fc-glow-primary), var(--fc-shadow-deep);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--fc-neon-primary) 0%, var(--fc-neon-secondary) 100%);
+            border-radius: 0; /* Brutalist */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--fc-dark-primary);
+            font-weight: 900;
+            box-shadow: var(--fc-shadow-brutal), var(--fc-glow-primary);
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 12px 12px 0px rgba(0, 212, 255, 0.3), var(--fc-glow-primary);
+        }
+
+        h1 {
+            color: var(--fc-text-primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            text-align: center;
+        }
+
+        .message {
+            color: var(--fc-text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: var(--fc-text-secondary);
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 1px;
+        }
+
+        input {
+            width: 100%;
+            padding: 16px 20px;
+            background: var(--fc-dark-secondary);
+            border: 2px solid var(--fc-border);
+            color: var(--fc-text-primary);
+            font-size: 16px;
+            font-family: inherit;
+            transition: all 0.3s ease;
+            outline: none;
+            border-radius: 0; /* Brutalist */
+        }
+
+        input:focus {
+            border-color: var(--fc-neon-primary);
+            box-shadow: var(--fc-glow-primary);
+            background: var(--fc-dark-accent);
+        }
+
+        input::placeholder {
+            color: var(--fc-text-muted);
+            font-style: italic;
+        }
+
+        input.error {
+            border-color: var(--fc-neon-secondary);
+            box-shadow: 0 0 10px rgba(255, 0, 110, 0.3);
+        }
+
+        .password-requirements {
+            margin-top: 12px;
+            font-size: 12px;
+            color: var(--fc-text-muted);
+            list-style: none;
+            padding: 12px;
+            background: var(--fc-dark-secondary);
+            border: 1px solid var(--fc-border);
+            border-radius: 0; /* Brutalist */
+        }
+
+        .password-requirements li {
+            margin-left: 0;
+            margin-top: 6px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .password-requirements li::before {
+            content: '▸';
+            position: absolute;
+            left: 0;
+            color: var(--fc-text-muted);
+            transition: all 0.3s ease;
+        }
+
+        .password-requirements li.valid {
+            color: var(--fc-neon-success);
+        }
+
+        .password-requirements li.valid::before {
+            content: '✓';
+            color: var(--fc-neon-success);
+        }
+
+        .password-requirements li.invalid {
+            color: var(--fc-text-muted);
+        }
+
+        .error-message {
+            color: var(--fc-neon-secondary);
+            font-size: 12px;
+            margin-top: 8px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .button {
+            width: 100%;
+            padding: 18px 24px;
+            background: linear-gradient(135deg, var(--fc-neon-primary) 0%, var(--fc-neon-secondary) 100%);
+            color: var(--fc-dark-primary);
+            border: none;
+            border-radius: 0; /* Brutalist */
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 20px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--fc-shadow-brutal);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 12px 12px 0px rgba(0, 212, 255, 0.3), var(--fc-glow-primary);
+        }
+
+        .button:active {
+            transform: translateY(0);
+        }
+
+        .button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background: var(--fc-dark-secondary) !important;
+            color: var(--fc-text-muted) !important;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 0; /* Brutalist */
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .status.success {
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--fc-neon-success);
+            border-color: var(--fc-neon-success);
+            box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.1);
+        }
+
+        .status.error {
+            background: rgba(255, 0, 110, 0.1);
+            color: var(--fc-neon-secondary);
+            border-color: var(--fc-neon-secondary);
+            box-shadow: inset 0 0 20px rgba(255, 0, 110, 0.1);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0, 212, 255, 0.2);
+            border-top: 2px solid var(--fc-neon-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .show-password {
+            position: relative;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+            color: var(--fc-text-muted);
+            user-select: none;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-password:hover {
+            color: var(--fc-neon-primary);
+            filter: drop-shadow(0 0 5px rgba(0, 212, 255, 0.5));
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">🔐</div>
+        <h1>Reset Password</h1>
+        <p class="message">Set a new password for your account</p>
+        
+        <div id="status-container" class="hidden"></div>
+        
+        <form id="reset-form">
+            <div class="form-group">
+                <label for="password">NEW PASSWORD</label>
+                <div class="show-password">
+                    <input type="password" id="password" name="password" required autocomplete="new-password">
+                    <span class="toggle-password" onclick="togglePassword('password')">👁️</span>
+                </div>
+                <div class="password-requirements">
+                    <p id="req-length" class="requirement">• Minimum 8 characters</p>
+                    <p id="req-uppercase" class="requirement">• One uppercase letter</p>
+                    <p id="req-lowercase" class="requirement">• One lowercase letter</p>
+                    <p id="req-number" class="requirement">• One number</p>
+                    <p id="req-special" class="requirement">• One special character</p>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label for="password-confirm">CONFIRM NEW PASSWORD</label>
+                <div class="show-password">
+                    <input type="password" id="password-confirm" name="password-confirm" required autocomplete="new-password">
+                    <span class="toggle-password" onclick="togglePassword('password-confirm')">👁️</span>
+                </div>
+                <p id="password-match-error" class="error-message hidden">Passwords do not match</p>
+            </div>
+            
+            <button type="submit" class="button" id="submit-button">
+                Set New Password
+            </button>
+        </form>
+        
+        <div id="success-container" class="hidden" style="text-align: center;">
+            <div class="status success">
+                ✅ Password has been changed!
+            </div>
+            <p class="message">You can now log in using your new password.</p>
+            <a href="/" class="button" style="display: inline-block; text-decoration: none; margin-top: 20px;">
+                Go to Login
+            </a>
+        </div>
+    </div>
+
+    <script>
+        // Dane Supabase
+        // Secure Supabase configuration
+        const supabaseConfig = window.FlowCraftSecurity.getSupabaseConfig();
+        
+        // Inicjalizacja Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+        
+        // Elementy DOM
+        const form = document.getElementById('reset-form');
+        const statusContainer = document.getElementById('status-container');
+        const successContainer = document.getElementById('success-container');
+        const submitButton = document.getElementById('submit-button');
+        const passwordInput = document.getElementById('password');
+        const confirmInput = document.getElementById('password-confirm');
+        const matchError = document.getElementById('password-match-error');
+        
+        // Walidacja hasła
+        const passwordRequirements = {
+            length: { regex: /.{8,}/, element: document.getElementById('req-length') },
+            uppercase: { regex: /[A-Z]/, element: document.getElementById('req-uppercase') },
+            lowercase: { regex: /[a-z]/, element: document.getElementById('req-lowercase') },
+            number: { regex: /[0-9]/, element: document.getElementById('req-number') },
+            special: { regex: /[!@#$%^&*(),.?":{}|<>]/, element: document.getElementById('req-special') }
+        };
+        
+        // Toggle widoczności hasła
+        window.togglePassword = function(fieldId) {
+            const field = document.getElementById(fieldId);
+            field.type = field.type === 'password' ? 'text' : 'password';
+        };
+        
+        // Sprawdzanie wymagań hasła
+        passwordInput.addEventListener('input', function() {
+            const password = this.value;
+            let allValid = true;
+            
+            for (const [key, requirement] of Object.entries(passwordRequirements)) {
+                const isValid = requirement.regex.test(password);
+                requirement.element.className = isValid ? 'valid' : 'invalid';
+                if (!isValid) allValid = false;
+            }
+            
+            return allValid;
+        });
+        
+        // Sprawdzanie zgodności haseł
+        confirmInput.addEventListener('input', function() {
+            if (this.value && this.value !== passwordInput.value) {
+                matchError.classList.remove('hidden');
+                this.classList.add('error');
+            } else {
+                matchError.classList.add('hidden');
+                this.classList.remove('error');
+            }
+        });
+        
+        // Funkcja wyświetlania statusu
+        function showStatus(type, message, details = '') {
+            statusContainer.className = `status ${type}`;
+            statusContainer.textContent = message;
+            statusContainer.classList.remove('hidden');
+            if (details) {
+                const detailsEl = document.createElement('p');
+                detailsEl.className = 'error-message';
+                detailsEl.textContent = details;
+                statusContainer.appendChild(detailsEl);
+            }
+        }
+        
+        // Obsługa formularza
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const password = passwordInput.value;
+            const confirmPassword = confirmInput.value;
+            
+            // Walidacja z użyciem error handler
+            try {
+                window.FlowCraftErrorHandler.validatePassword(password);
+            } catch (error) {
+                showStatus('error', '❌ ' + error.message);
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                showStatus('error', '❌ Passwords do not match');
+                window.FlowCraftErrorHandler.showNotification('Passwords do not match', 'validation');
+                return;
+            }
+            
+            // Sprawdź wszystkie wymagania
+            let allValid = true;
+            for (const requirement of Object.values(passwordRequirements)) {
+                if (!requirement.regex.test(password)) {
+                    allValid = false;
+                    break;
+                }
+            }
+            
+            if (!allValid) {
+                showStatus('error', '❌ Password does not meet all requirements');
+                window.FlowCraftErrorHandler.showNotification('Password does not meet requirements', 'validation');
+                return;
+            }
+            
+            // Pokaż loading
+            submitButton.disabled = true;
+            submitButton.innerHTML = '<span class="spinner"></span> Updating password...';
+            statusContainer.classList.add('hidden');
+            
+            try {
+                // Get the token from the URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const type = urlParams.get('type') || 'recovery';
+                    
+                if (!token) {
+                    throw new Error('No reset token found in URL');
+                }
+
+                // First verify the token using error handler
+                const verifyResult = await window.FlowCraftErrorHandler.executeSupabaseRequest(
+                    () => supabaseClient.auth.verifyOtp({
+                        token_hash: token,
+                        type: type
+                    }),
+                    {
+                        loadingMessage: 'Verifying reset token...',
+                        timeout: 15000
+                    }
+                );
+                        
+                if (verifyResult.error) {
+                    throw verifyResult.error;
+                }
+
+                // Now update the password using error handler
+                const updateResult = await window.FlowCraftErrorHandler.executeSupabaseRequest(
+                    () => supabaseClient.auth.updateUser({
+                        password: password
+                    }),
+                    {
+                        loadingMessage: 'Updating password...',
+                        timeout: 15000
+                    }
+                );
+                
+                if (updateResult.error) {
+                    throw updateResult.error;
+                }
+                
+                // Success!
+                form.style.display = 'none';
+                successContainer.classList.remove('hidden');
+                window.FlowCraftErrorHandler.showNotification('Password updated successfully!', 'success');
+                
+            } catch (err) {
+                console.error('Error:', err);
+                let errorMessage = '❌ Failed to update password';
+                let errorDetails = err.message;
+                
+                if (err.message.includes('expired')) {
+                    errorMessage = '⏰ Link expired';
+                    errorDetails = 'This reset link has expired. Please request a new password reset link.';
+                } else if (err.message.includes('session')) {
+                    errorMessage = '❌ Authentication error';
+                    errorDetails = 'Please try clicking the reset link from your email again.';
+                }
+                
+                showStatus('error', errorMessage, errorDetails);
+                window.FlowCraftErrorHandler.handleError(err);
+            } finally {
+                submitButton.disabled = false;
+                submitButton.innerHTML = 'Set New Password';
+            }
+        });
+        
+        // Sprawdź konfigurację przy załadowaniu
+        window.addEventListener('DOMContentLoaded', () => {
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                showStatus('error', '⚠️ Missing configuration - please fill in SUPABASE_URL and SUPABASE_ANON_KEY');
+                form.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html> 

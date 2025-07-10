@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Potwierdzenie konta - FlowCraft</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="config.js"></script>
+    <script src="flowcraft-error-handler.js"></script>
+    
+    <!-- Security Headers -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none';">
+    <meta http-equiv="X-Content-Type-Options" content="nosniff">
+    <meta http-equiv="X-Frame-Options" content="DENY">
+    <meta http-equiv="Referrer-Policy" content="strict-origin-when-cross-origin">
+    <meta name="csrf-token" content=""><!-- CSRF token will be set by JavaScript -->
+    <script src="flowcraft-error-handler.js"></script>
+    <style>
+        :root {
+            /* FlowCraft 2025 Futuristic Palette */
+            --flowcraft-primary: #00D4FF;
+            --flowcraft-primary-dark: #0099CC;
+            --flowcraft-secondary: #FF006E;
+            --flowcraft-secondary-dark: #CC0055;
+            --flowcraft-accent: #8B5CF6;
+            --flowcraft-success: #39FF14;
+            --flowcraft-danger: #FF006E;
+            --flowcraft-warning: #FFBE0B;
+            --flowcraft-dark: #0A0A0F;
+            --flowcraft-grey: #6B7280;
+            --flowcraft-light-grey: #1A1A2E;
+            --flowcraft-white: #FFFFFF;
+            
+            /* 2025 Design Variables */
+            --fc-dark-primary: #0A0A0F;
+            --fc-dark-secondary: #1A1A2E;
+            --fc-dark-accent: #16213E;
+            --fc-neon-primary: #00D4FF;
+            --fc-neon-secondary: #FF006E;
+            --fc-neon-accent: #8B5CF6;
+            --fc-neon-warning: #FFBE0B;
+            --fc-neon-success: #39FF14;
+            --fc-text-primary: #FFFFFF;
+            --fc-text-secondary: #B4B4B8;
+            --fc-text-muted: #6B7280;
+            --fc-surface: rgba(26, 26, 46, 0.8);
+            --fc-surface-light: rgba(255, 255, 255, 0.1);
+            --fc-border: rgba(0, 212, 255, 0.3);
+            
+            /* Gradient Variables */
+            --flowcraft-gradient-bg: linear-gradient(135deg, #0A0A0F 0%, #1A1A2E 25%, #16213E 75%, #0A0A0F 100%);
+            
+            /* Shadow Variables - 2025 Neon Effects */
+            --fc-glow-primary: 0 0 20px rgba(0, 212, 255, 0.5);
+            --fc-glow-secondary: 0 0 30px rgba(255, 0, 110, 0.3);
+            --fc-shadow-brutal: 8px 8px 0px rgba(0, 212, 255, 0.2);
+            --fc-shadow-deep: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'SF Mono', 'Monaco', 'Inconsolata', 'Fira Code', monospace;
+            background: var(--flowcraft-gradient-bg);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: var(--fc-text-primary);
+            position: relative;
+        }
+
+        /* Grid background pattern */
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-image: 
+                linear-gradient(rgba(0, 212, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 212, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .container {
+            background: var(--fc-surface);
+            backdrop-filter: blur(20px);
+            border: 2px solid var(--fc-border);
+            border-radius: 0; /* Brutalist */
+            box-shadow: var(--fc-shadow-brutal), var(--fc-shadow-deep);
+            padding: 48px;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 2;
+        }
+
+        .container:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--fc-glow-primary), var(--fc-shadow-deep);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            background: linear-gradient(135deg, var(--fc-neon-primary) 0%, var(--fc-neon-secondary) 100%);
+            border-radius: 0; /* Brutalist */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 36px;
+            color: var(--fc-dark-primary);
+            font-weight: 900;
+            box-shadow: var(--fc-shadow-brutal), var(--fc-glow-primary);
+            transition: all 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.05);
+            box-shadow: 12px 12px 0px rgba(0, 212, 255, 0.3), var(--fc-glow-primary);
+        }
+
+        h1 {
+            color: var(--fc-text-primary);
+            margin-bottom: 10px;
+            font-size: 28px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .message {
+            color: var(--fc-text-secondary);
+            margin-bottom: 30px;
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .status {
+            padding: 16px;
+            border-radius: 0; /* Brutalist */
+            margin-bottom: 20px;
+            font-weight: 600;
+            border: 2px solid;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-size: 14px;
+        }
+
+        .status.loading {
+            background: rgba(0, 212, 255, 0.1);
+            color: var(--fc-neon-primary);
+            border-color: var(--fc-neon-primary);
+            box-shadow: inset 0 0 20px rgba(0, 212, 255, 0.1);
+        }
+
+        .status.success {
+            background: rgba(57, 255, 20, 0.1);
+            color: var(--fc-neon-success);
+            border-color: var(--fc-neon-success);
+            box-shadow: inset 0 0 20px rgba(57, 255, 20, 0.1);
+        }
+
+        .status.error {
+            background: rgba(255, 0, 110, 0.1);
+            color: var(--fc-neon-secondary);
+            border-color: var(--fc-neon-secondary);
+            box-shadow: inset 0 0 20px rgba(255, 0, 110, 0.1);
+        }
+
+        .button {
+            display: inline-block;
+            padding: 16px 32px;
+            background: linear-gradient(135deg, var(--fc-neon-primary) 0%, var(--fc-neon-secondary) 100%);
+            color: var(--fc-dark-primary);
+            text-decoration: none;
+            border-radius: 0; /* Brutalist */
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-top: 10px;
+            border: none;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--fc-shadow-brutal);
+        }
+
+        .button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .button:hover::before {
+            left: 100%;
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 12px 12px 0px rgba(0, 212, 255, 0.3), var(--fc-glow-primary);
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 212, 255, 0.2);
+            border-top: 3px solid var(--fc-neon-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error-details {
+            font-size: 12px;
+            color: var(--fc-text-muted);
+            margin-top: 10px;
+            padding: 12px;
+            background: var(--fc-dark-secondary);
+            border: 1px solid var(--fc-border);
+            border-radius: 0; /* Brutalist */
+            text-align: left;
+            font-family: inherit;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="logo">✓</div>
+        <h1>Potwierdzenie konta</h1>
+        <p class="message">Weryfikujemy Twoje konto...</p>
+        
+        <div id="status" class="status loading">
+            <span class="spinner"></span>
+            Trwa potwierdzanie konta...
+        </div>
+        
+        <div id="action-container" style="display: none;">
+            <a href="/" class="button">Przejdź do aplikacji</a>
+        </div>
+    </div>
+
+    <script>
+        // Dane Supabase
+        // Secure Supabase configuration
+        const supabaseConfig = window.FlowCraftSecurity.getSupabaseConfig();
+        
+        // Inicjalizacja Supabase
+        const { createClient } = supabase;
+        const supabaseClient = createClient(supabaseConfig.url, supabaseConfig.anonKey);
+        
+        // Elementy DOM
+        const statusEl = document.getElementById('status');
+        const actionContainerEl = document.getElementById('action-container');
+        const messageEl = document.querySelector('.message');
+        
+        // Funkcja do wyświetlania statusu
+        function showStatus(type, message, details = null) {
+            statusEl.className = `status ${type}`;
+            statusEl.innerHTML = message;
+            
+            if (details) {
+                const detailsEl = document.createElement('div');
+                detailsEl.className = 'error-details';
+                detailsEl.textContent = details;
+                statusEl.appendChild(detailsEl);
+            }
+            
+            if (type === 'success' || type === 'error') {
+                actionContainerEl.style.display = 'block';
+            }
+        }
+        
+        // Główna funkcja potwierdzająca konto
+        async function confirmAccount() {
+            try {
+                // Pobierz token z URL
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+                const type = urlParams.get('type');
+                
+                console.log('Token:', token);
+                console.log('Type:', type);
+                
+                if (!token) {
+                    showStatus('error', '❌ Brak tokenu weryfikacyjnego', 'Link jest nieprawidłowy lub niekompletny.');
+                    messageEl.textContent = 'Nie można potwierdzić konta.';
+                    window.FlowCraftErrorHandler.showNotification('Brak tokenu weryfikacyjnego', 'error');
+                    return;
+                }
+                
+                // Użyj error handler do weryfikacji tokenu
+                const result = await window.FlowCraftErrorHandler.executeSupabaseRequest(
+                    () => supabaseClient.auth.verifyOtp({
+                        token_hash: token,
+                        type: type || 'signup'
+                    }),
+                    {
+                        loadingMessage: 'Weryfikuję token...',
+                        timeout: 15000
+                    }
+                );
+                
+                if (result.error) {
+                    console.error('Błąd weryfikacji:', result.error);
+                    
+                    // Różne komunikaty w zależności od błędu
+                    let errorMessage = '❌ Nie udało się potwierdzić konta';
+                    let errorDetails = result.error.message;
+                    
+                    if (result.error.message.includes('expired')) {
+                        errorMessage = '⏰ Link wygasł';
+                        errorDetails = 'Ten link potwierdzający wygasł. Poproś o nowy link weryfikacyjny.';
+                    } else if (result.error.message.includes('already confirmed')) {
+                        errorMessage = '✓ Konto już potwierdzone';
+                        errorDetails = 'Twoje konto zostało już wcześniej potwierdzone. Możesz się zalogować.';
+                        showStatus('success', errorMessage, errorDetails);
+                        messageEl.textContent = 'Możesz przejść do aplikacji.';
+                        window.FlowCraftErrorHandler.showNotification('Konto już potwierdzone', 'success');
+                        return;
+                    }
+                    
+                    showStatus('error', errorMessage, errorDetails);
+                    messageEl.textContent = 'Wystąpił problem z weryfikacją.';
+                } else {
+                    // Sukces!
+                    showStatus('success', '✅ Konto zostało potwierdzone!');
+                    messageEl.textContent = 'Twoje konto jest teraz aktywne. Możesz się zalogować.';
+                    window.FlowCraftErrorHandler.showNotification('Konto zostało potwierdzone!', 'success');
+                    
+                    // Przekieruj do strony głównej po 2 sekundach
+                    setTimeout(() => {
+                        window.location.href = '/';
+                    }, 2000);
+                }
+            } catch (err) {
+                console.error('Nieoczekiwany błąd:', err);
+                showStatus('error', '❌ Wystąpił nieoczekiwany błąd', err.message);
+                messageEl.textContent = 'Przepraszamy, coś poszło nie tak.';
+                window.FlowCraftErrorHandler.handleError(err);
+            }
+        }
+        
+        // Uruchom weryfikację po załadowaniu strony
+        window.addEventListener('DOMContentLoaded', () => {
+            // Sprawdź czy mamy prawidłowe dane Supabase
+            if (SUPABASE_URL === 'YOUR_SUPABASE_URL' || SUPABASE_ANON_KEY === 'YOUR_SUPABASE_ANON_KEY') {
+                showStatus('error', '⚠️ Brak konfiguracji', 'Uzupełnij dane SUPABASE_URL i SUPABASE_ANON_KEY w kodzie.');
+                messageEl.textContent = 'Aplikacja nie jest skonfigurowana.';
+                return;
+            }
+            
+            // Rozpocznij weryfikację
+            confirmAccount();
+        });
+    </script>
+</body>
+</html> 
