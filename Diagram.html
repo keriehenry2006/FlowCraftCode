@@ -378,7 +378,7 @@
             padding: 20px; 
             /* 2025 Futuristic Dark Background */
             background: var(--flowcraft-gradient-bg);
-            background-attachment: fixed;
+            background-attachment: fixed; 
             min-height: 100vh; 
             overflow-x: hidden; 
             box-sizing: border-box; 
@@ -494,7 +494,6 @@
         .colors-toggle-bar:hover, .visual-controls:hover {
             animation: containerFloating 2s ease-in-out infinite;
         }
-        
         /* 2025 Futuristic Button Styles */
         .main-controls button, .main-controls input[type="search"] { 
             display: inline-flex;
@@ -994,7 +993,6 @@
         }
         
         #sticky-x-axis .axis { text-align: center; }
-        
         /* NOWOCZESNE HOVER EFFECTS */
         #sticky-y-axis .axis:hover, #sticky-x-axis .axis:hover { 
             background: linear-gradient(135deg, rgba(248, 249, 250, 0.95) 0%, rgba(233, 236, 239, 0.9) 100%);
@@ -1492,12 +1490,6 @@
             background: rgba(0, 0, 0, 0.05);
             border-radius: 4px;
         }
-        
-        #simulation-panel::-webkit-scrollbar-thumb {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 4px;
-        }
-        
         #simulation-panel::-webkit-scrollbar-thumb:hover {
             background: rgba(0, 0, 0, 0.3);
         }
@@ -1993,7 +1985,6 @@
             stroke-width: 0.8px; 
             filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
         }
-
         /* === NOWOCZESNE STYLE DLA PANELU DEPENDENCIES === */
         #dependency-panel-container {
             position: fixed;
@@ -2487,7 +2478,6 @@
     border-color: #dc3545;
     background-color: #f8d7da;
 }
-
 /* KLUCZOWE STYLE DO POKAZYWANIA KONTROLEK */
 #simulation-targets-list .sim-card-controls {
     display: none; /* Domyślnie ukryte */
@@ -2989,7 +2979,6 @@ body.dark-mode #theme-toggle-button .sun-icon {
             transform: translateY(-1px);
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
-        
         .excel-action-button:disabled {
             background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
             color: #6c757d;
@@ -3419,10 +3408,6 @@ body.dark-mode #theme-toggle-button .sun-icon {
 body {
     padding-bottom: 20px; /* Zresetuj padding, bo panel jest teraz w przepływie */
 }
-        body.dark-mode #dependency-panel-resizer {
-            background: linear-gradient(90deg, transparent 0%, rgba(218, 41, 28, 0.2) 50%, transparent 100%);
-        }
-        
         body.dark-mode #dependency-panel-resizer:hover {
             background: linear-gradient(90deg, transparent 0%, rgba(218, 41, 28, 0.4) 50%, transparent 100%);
             box-shadow: inset -2px 0 4px rgba(218, 41, 28, 0.3);
@@ -3918,7 +3903,6 @@ body {
             border-color: var(--bridgestone-red);
             box-shadow: 0 0 0 3px rgba(218, 41, 28, 0.2);
         }
-        
         /* === KOMPLETNA STYLIZACJA DARK MODE DLA FILTER PANEL === */
         body.dark-mode #filter-panel {
             background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
@@ -4414,7 +4398,6 @@ body.dark-mode #reset-colors-button:hover, body.dark-mode #generate-theme-button
             stroke: #cbd5e0;
             stroke-width: 2px;
         }
-        
         body.dark-mode .dep-tree-node.path-highlight rect {
             fill: #b7791f;
             stroke: #ecc94b;
@@ -4912,7 +4895,6 @@ body.dark-mode #reset-colors-button:hover, body.dark-mode #generate-theme-button
             color: white;
             box-shadow: 0 2px 8px rgba(229, 62, 62, 0.4);
         }
-        
         body.dark-mode #colors-panel .close-panel-button:hover {
             background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
             box-shadow: 0 4px 12px rgba(229, 62, 62, 0.5);
@@ -5736,7 +5718,6 @@ body.dark-mode .status-icon-pending {
     <div class="context-menu-item" data-type="blocking">Blocking (_B)</div>
     <div class="context-menu-item" data-type="informational">Informational (_I)</div>
 	</div>
-
 <script>
     const dependencyTypeMenu = document.getElementById('dependency-type-menu');
     let pendingLinkSourceId = null;
@@ -6631,7 +6612,6 @@ let configColors = JSON.parse(JSON.stringify(THEMES[0]));    const expectedDiagr
     
     // Inicjalizuj submenu
     setupSubmenuToggles();
-    
     // === DEPENDENCIES AUTOCOMPLETE SETUP ===
     function setupDependenciesAutocomplete() {
         const dependenciesInput = document.getElementById('process-dependencies-modal');
@@ -7356,7 +7336,6 @@ document.addEventListener('mouseup', (e) => {
     linkStartProcessId = null; 
     linkStartProcessSheet = null;
 });
-
     toggleMiniMapButton.addEventListener('click', () => {
         const isCurrentlyHidden = miniMapWrapper.style.display === 'none' || miniMapWrapper.style.display === '';
         if (isCurrentlyHidden) {
@@ -7781,134 +7760,113 @@ function updateTopBarHeight() {
         return node;
     }
     // MODYFIKACJA KONIEC
+    // MODYFIKACJA START: Użycie simulationTargets do identyfikacji głównych celów
+    const simulationTargetIds = new Set(isSimulationModeActive ? simulationTargets.map(t => t.id) : []);
     // MODYFIKACJA KONIEC
-    function drawMiniMap() {
-        if (miniMapWrapper.style.display === 'none') {
-            miniMapSvg.innerHTML = '';
-            return;
+
+    allProcsData.forEach(proc => {
+        const layout = nodeLayouts[proc.ID]; 
+        if (!layout && !(isSimulationModeActive && simulationTargetIds.has(proc.ID))) { 
+             return;
         }
-        miniMapSvg.innerHTML = '';
-        const currentProcesses = getCurrentlyVisibleProcesses(true); 
-        const allProcsData = isSimulationModeActive ? getAllProcessesFromData() : currentProcesses; 
-        
-        if (allProcsData.length === 0 || overallDiagramBounds.maxX - overallDiagramBounds.minX <= 0) {
-             if(welcomeMessageOverlay) welcomeMessageOverlay.style.display = 'flex';
-            return;
+
+        const nodeEl = diagramPane.querySelector(`.process-node[data-id="${proc.ID}"]`);
+
+        if (!isSimulationModeActive) { 
+            if (!nodeEl || nodeEl.classList.contains('filtered-out-general') || nodeEl.classList.contains('filtered-out-axis') || nodeEl.classList.contains('tree-highlight-dimmed') || nodeEl.classList.contains('search-dimmed')) {
+                return;
+            }
+        } else { 
+            if (nodeEl && nodeEl.classList.contains('simulation-dimmed-others')) {
+                return;
+            }
         }
-        if(welcomeMessageOverlay) welcomeMessageOverlay.style.display = 'none';
 
+        const rect = document.createElementNS(SVG_NS, 'rect');
+        let rectX, rectY, rectWidth, rectHeight;
 
-        const viewBoxWidth = Math.max(1, overallDiagramBounds.maxX - overallDiagramBounds.minX);
-        const viewBoxHeight = Math.max(1, overallDiagramBounds.maxY - overallDiagramBounds.minY);
-        miniMapSvg.setAttribute('viewBox', `${overallDiagramBounds.minX} ${overallDiagramBounds.minY} ${viewBoxWidth} ${viewBoxHeight}`);
-        
-        // MODYFIKACJA START: Użycie simulationTargets do identyfikacji głównych celów
-        const simulationTargetIds = new Set(isSimulationModeActive ? simulationTargets.map(t => t.id) : []);
-        // MODYFIKACJA KONIEC
+        const isSimulatedNode = isSimulationModeActive && simulationTargetIds.has(proc.ID);
+        const isShiftedOrAdded = isSimulatedNode && nodeEl && (nodeEl.classList.contains('simulation-shifted') || nodeEl.classList.contains('simulation-new-node'));
 
-        allProcsData.forEach(proc => {
-            const layout = nodeLayouts[proc.ID]; 
-            if (!layout && !(isSimulationModeActive && simulationTargetIds.has(proc.ID))) { 
-                 return;
-            }
+        if (isShiftedOrAdded) {
+            const nodeRect = nodeEl.getBoundingClientRect();
+            const diagramRect = diagramContainer.getBoundingClientRect();
+            rectX = (nodeRect.left - diagramRect.left + diagramContainer.scrollLeft) / currentZoom;
+            rectY = (nodeRect.top - diagramRect.top + diagramContainer.scrollTop) / currentZoom;
+            rectWidth = nodeEl.offsetWidth / currentZoom;
+            rectHeight = nodeEl.offsetHeight / currentZoom;
+        } else if (layout) {
+            rectX = layout.finalX;
+            rectY = layout.finalY;
+            rectWidth = layout.width;
+            rectHeight = layout.height;
+        } else {
+            return; 
+        }
 
-            const nodeEl = diagramPane.querySelector(`.process-node[data-id="${proc.ID}"]`);
+        rect.setAttribute('x', rectX);
+        rect.setAttribute('y', rectY);
+        rect.setAttribute('width', rectWidth);
+        rect.setAttribute('height', rectHeight);
+        rect.classList.add('mini-map-node');
 
-            if (!isSimulationModeActive) { 
-                if (!nodeEl || nodeEl.classList.contains('filtered-out-general') || nodeEl.classList.contains('filtered-out-axis') || nodeEl.classList.contains('tree-highlight-dimmed') || nodeEl.classList.contains('search-dimmed')) {
-                    return;
-                }
-            } else { 
-                if (nodeEl && nodeEl.classList.contains('simulation-dimmed-others')) {
-                    return;
-                }
-            }
-
-            const rect = document.createElementNS(SVG_NS, 'rect');
-            let rectX, rectY, rectWidth, rectHeight;
-
-            const isSimulatedNode = isSimulationModeActive && simulationTargetIds.has(proc.ID);
-            const isShiftedOrAdded = isSimulatedNode && nodeEl && (nodeEl.classList.contains('simulation-shifted') || nodeEl.classList.contains('simulation-new-node'));
-
-            if (isShiftedOrAdded) {
-                const nodeRect = nodeEl.getBoundingClientRect();
-                const diagramRect = diagramContainer.getBoundingClientRect();
-                rectX = (nodeRect.left - diagramRect.left + diagramContainer.scrollLeft) / currentZoom;
-                rectY = (nodeRect.top - diagramRect.top + diagramContainer.scrollTop) / currentZoom;
-                rectWidth = nodeEl.offsetWidth / currentZoom;
-                rectHeight = nodeEl.offsetHeight / currentZoom;
-            } else if (layout) {
-                rectX = layout.finalX;
-                rectY = layout.finalY;
-                rectWidth = layout.width;
-                rectHeight = layout.height;
+        if (isSimulationModeActive) {
+            if (isSimulatedNode) {
+                rect.style.fill = 'gold'; // Główny cel symulacji
+                rect.style.stroke = 'black';
+                rect.style.strokeWidth = "1.5px";
+            } else if (nodeEl && (nodeEl.classList.contains('simulation-input-conflict') || nodeEl.classList.contains('simulation-output-at-risk'))) {
+                rect.style.fill = '#dc3545'; // Konflikt lub Ryzyko (czerwony)
+            } else if (nodeEl && nodeEl.classList.contains('simulation-affected-dependent')) {
+                rect.style.fill = '#ffc107'; // Inny wpływ (żółty/pomarańczowy)
             } else {
-                return; 
+                 rect.style.fill = (proc._sheetColorIndex !== undefined) ? sheetColors[proc._sheetColorIndex % sheetColors.length] : configColors.node;
+                 rect.style.opacity = 0.5;
             }
-
-            rect.setAttribute('x', rectX);
-            rect.setAttribute('y', rectY);
-            rect.setAttribute('width', rectWidth);
-            rect.setAttribute('height', rectHeight);
-            rect.classList.add('mini-map-node');
-
-            if (isSimulationModeActive) {
-                if (isSimulatedNode) {
-                    rect.style.fill = 'gold'; // Główny cel symulacji
-                    rect.style.stroke = 'black';
-                    rect.style.strokeWidth = "1.5px";
-                } else if (nodeEl && (nodeEl.classList.contains('simulation-input-conflict') || nodeEl.classList.contains('simulation-output-at-risk'))) {
-                    rect.style.fill = '#dc3545'; // Konflikt lub Ryzyko (czerwony)
-                } else if (nodeEl && nodeEl.classList.contains('simulation-affected-dependent')) {
-                    rect.style.fill = '#ffc107'; // Inny wpływ (żółty/pomarańczowy)
-                } else {
-                     rect.style.fill = (proc._sheetColorIndex !== undefined) ? sheetColors[proc._sheetColorIndex % sheetColors.length] : configColors.node;
-                     rect.style.opacity = 0.5;
-                }
+        } else {
+            if (proc && proc._sheetColorIndex !== undefined && allDataSourceSheetNames.length > 1) {
+                rect.style.fill = sheetColors[proc._sheetColorIndex % sheetColors.length];
             } else {
-                if (proc && proc._sheetColorIndex !== undefined && allDataSourceSheetNames.length > 1) {
-                    rect.style.fill = sheetColors[proc._sheetColorIndex % sheetColors.length];
-                } else {
-                    rect.style.fill = configColors.node;
-                }
-                if(proc.ID === currentlySelectedProcessId){
-                    rect.style.stroke = configColors.lightning;
-                    rect.style.strokeWidth = "3px";
-                }
+                rect.style.fill = configColors.node;
             }
-            miniMapSvg.appendChild(rect);
-        });
-
-        if (miniMapViewportRect && miniMapViewportRect.parentNode) {
-            miniMapViewportRect.parentNode.removeChild(miniMapViewportRect);
+            if(proc.ID === currentlySelectedProcessId){
+                rect.style.stroke = configColors.lightning;
+                rect.style.strokeWidth = "3px";
+            }
         }
-        miniMapViewportRect = document.createElementNS(SVG_NS, 'rect');
-        miniMapViewportRect.setAttribute('id', 'mini-map-viewport-rect');
-        miniMapSvg.appendChild(miniMapViewportRect);
+        miniMapSvg.appendChild(rect);
+    });
+
+    if (miniMapViewportRect && miniMapViewportRect.parentNode) {
+        miniMapViewportRect.parentNode.removeChild(miniMapViewportRect);
+    }
+    miniMapViewportRect = document.createElementNS(SVG_NS, 'rect');
+    miniMapViewportRect.setAttribute('id', 'mini-map-viewport-rect');
+    miniMapSvg.appendChild(miniMapViewportRect);
+}
+
+function updateMiniMapViewPort() {
+    if (miniMapWrapper.style.display === 'none') {
+        return;
+    }
+    if (!miniMapViewportRect || getCurrentlyVisibleProcesses().length === 0 && !isSimulationModeActive || overallDiagramBounds.maxX - overallDiagramBounds.minX <= 0) {
+        if (miniMapViewportRect) {
+            miniMapViewportRect.setAttribute('width', '0');
+            miniMapViewportRect.setAttribute('height', '0');
+        }
+        return;
     }
 
-    function updateMiniMapViewPort() {
-        if (miniMapWrapper.style.display === 'none') {
-            return;
-        }
-        if (!miniMapViewportRect || getCurrentlyVisibleProcesses().length === 0 && !isSimulationModeActive || overallDiagramBounds.maxX - overallDiagramBounds.minX <= 0) {
-            if (miniMapViewportRect) {
-                miniMapViewportRect.setAttribute('width', '0');
-                miniMapViewportRect.setAttribute('height', '0');
-            }
-            return;
-        }
+    const diagramVisibleWidth = diagramContainer.clientWidth / currentZoom;
+    const diagramVisibleHeight = diagramContainer.clientHeight / currentZoom;
+    const diagramScrollLeft = diagramContainer.scrollLeft / currentZoom;
+    const diagramScrollTop = diagramContainer.scrollTop / currentZoom;
 
-        const diagramVisibleWidth = diagramContainer.clientWidth / currentZoom;
-        const diagramVisibleHeight = diagramContainer.clientHeight / currentZoom;
-        const diagramScrollLeft = diagramContainer.scrollLeft / currentZoom;
-        const diagramScrollTop = diagramContainer.scrollTop / currentZoom;
-
-        miniMapViewportRect.setAttribute('x', diagramScrollLeft);
-        miniMapViewportRect.setAttribute('y', diagramScrollTop);
-        miniMapViewportRect.setAttribute('width', Math.max(0, diagramVisibleWidth));
-        miniMapViewportRect.setAttribute('height', Math.max(0, diagramVisibleHeight));
-    }
+    miniMapViewportRect.setAttribute('x', diagramScrollLeft);
+    miniMapViewportRect.setAttribute('y', diagramScrollTop);
+    miniMapViewportRect.setAttribute('width', Math.max(0, diagramVisibleWidth));
+    miniMapViewportRect.setAttribute('height', Math.max(0, diagramVisibleHeight));
+}
 
 function clearSelectionHighlightsAndDimming() {
     if (isSimulationModeActive) return;
@@ -8269,7 +8227,6 @@ function fullReset() {
         saveStateToLocalStorage();
         console.log('✅ Tree highlight completed');
     }
-
     function drawAllTreeDependencies() {
         if (!isTreeHighlightActive || highlightedTreeNodesIds.size === 0) {
             return;
@@ -8689,7 +8646,6 @@ function fullReset() {
             toggleDependencyEditButton.title = 'Currently Disabled: Click to enable manual dependency editing.';
         }
     }
-
 // Supabase Functions - replacing localStorage functionality
 async function loadDataFromSupabase() {
     try {
@@ -9131,7 +9087,6 @@ function resetColorsToDefault() {
     
     showNotification(`Theme reset to: ${THEMES[0].name}.`, "success");
 }
-
 	// NOWA FUNKCJA GENEROWANIA LOSOWEGO MOTYWU FlowCraft 2025
 function generateNewTheme() {
     // Paleta kolorów jasnych dla ciemnego tła FlowCraft 2025
@@ -9558,8 +9513,6 @@ function drawSelectionDependenciesArrows(selectedProcess) {
     refreshDiagramStyles(); 
     updateAllDependencyAndSimShortcutButtonsState();
 }
-
-
     function parseTime(timeStr) {
         if (!timeStr || typeof timeStr !== 'string' || !timeStr.includes(':')) return NaN;
         const parts = timeStr.split(':');
@@ -9981,7 +9934,6 @@ function drawSelectionDependenciesArrows(selectedProcess) {
         resetVisualStates(); 
         saveStateToLocalStorage();
     }
-
     // Load data from multiple selected sheets
     async function loadMultipleSheetsFromSupabase() {
         if (!currentProjectId || selectedSheetViews.length === 0) {
@@ -10476,7 +10428,6 @@ function renderDiagram() {
             });
         }
     }
-
     function updateWdAxisLabels() {
         console.log('🔄 Updating WD axis labels for:', gUniqueDataWds);
         
@@ -10833,12 +10784,9 @@ function updateSimulationTargetsList() {
                 btn.classList.add('active');
             }
             
-// NOWA WERSJA (POPRAWIONA)
             btn.onclick = (e) => {
-                e.stopPropagation(); // <-- DODANA LINIA: Zapobiega propagacji kliknięcia
+                e.stopPropagation();
                 target.type = typeLower;
-                // **TYLKO** przebudowujemy interfejs, aby pokazać/ukryć pola.
-                // **NIE** uruchamiamy symulacji automatycznie!
                 updateSimulationTargetsList(); 
             };
             
@@ -10880,37 +10828,26 @@ function updateSimulationTargetsList() {
         }
     });
 }
-
 function drawArrow(fromNode, toNode, color, arrowTypeClassesString, dependencyLinkType = 'standard', isImpactPath = false) {
     if (!fromNode || !toNode) return;
 
-    const isSimulatedSource = isSimulationModeActive && (simulationTargets.some(t => t.id === fromNode.dataset.id && (t.type === 'shift' || t.type === 'add')));
-    const isSimulatedTarget = isSimulationModeActive && (simulationTargets.some(t => t.id === toNode.dataset.id && (t.type === 'shift' || t.type === 'add')));
-
-    let fromLayout = nodeLayouts[fromNode.dataset.id];
-    let toLayout = nodeLayouts[toNode.dataset.id];
-
+    // Wymuś reflow i pobierz aktualne pozycje z DOM po zmianie WD/pozycji
     let x1, y1, x2, y2;
+    const diagramRect = diagramContainer.getBoundingClientRect();
+    const zoom = currentZoom || 1;
 
-    if (isSimulatedSource) {
-        const fromRect = fromNode.getBoundingClientRect();
-        const diagramRect = diagramContainer.getBoundingClientRect();
-        x1 = (fromRect.left - diagramRect.left + diagramContainer.scrollLeft + (fromRect.width / 2)) / currentZoom;
-        y1 = (fromRect.top - diagramRect.top + diagramContainer.scrollTop + (fromRect.height / 2)) / currentZoom;
-    } else if (fromLayout) {
-        x1 = (fromLayout.finalX + fromLayout.width / 2);
-        y1 = (fromLayout.finalY + fromLayout.height / 2);
-    } else { return; }
+    // Zawsze pobieraj z getBoundingClientRect w trybie symulacji
+    const fromRect = fromNode.getBoundingClientRect();
+    x1 = (fromRect.left - diagramRect.left + diagramContainer.scrollLeft + (fromRect.width / 2)) / zoom;
+    y1 = (fromRect.top - diagramRect.top + diagramContainer.scrollTop + (fromRect.height / 2)) / zoom;
 
-    if (isSimulatedTarget) {
-        const toRect = toNode.getBoundingClientRect();
-        const diagramRect = diagramContainer.getBoundingClientRect();
-        x2 = (toRect.left - diagramRect.left + diagramContainer.scrollLeft + (toRect.width / 2)) / currentZoom;
-        y2 = (toRect.top - diagramRect.top + diagramContainer.scrollTop + (toRect.height / 2)) / currentZoom;
-    } else if (toLayout) {
-        x2 = (toLayout.finalX + toLayout.width / 2);
-        y2 = (toLayout.finalY + toLayout.height / 2);
-    } else { return; }
+    const toRect = toNode.getBoundingClientRect();
+    x2 = (toRect.left - diagramRect.left + diagramContainer.scrollLeft + (toRect.width / 2)) / zoom;
+    y2 = (toRect.top - diagramRect.top + diagramContainer.scrollTop + (toRect.height / 2)) / zoom;
+
+    // Debug logi do weryfikacji pozycji
+    console.log(`[drawArrow] FromNode: ${fromNode.dataset.id}, ToNode: ${toNode.dataset.id}`);
+    console.log(`[drawArrow] x1: ${x1}, y1: ${y1}, x2: ${x2}, y2: ${y2}`);
 
     const line = document.createElementNS(SVG_NS, 'line');
     line.setAttribute('x1', x1);
@@ -11298,7 +11235,6 @@ function drawArrow(fromNode, toNode, color, arrowTypeClassesString, dependencyLi
             dynamicFieldsContainer.appendChild(fieldContainer);
         });
     }
-
     function openEditModal(processId, sourceSheetHint) {
         if (isSimulationModeActive) endSimulation();
         let process; let actualSourceSheet = sourceSheetHint;
@@ -11786,7 +11722,6 @@ function drawArrow(fromNode, toNode, color, arrowTypeClassesString, dependencyLi
 
         saveStateToLocalStorage();
     }
-
 async function convertXlsxFileToStructuredJson(file) {
     return new Promise((resolve, reject) => {
         const reader = new FileReader();
@@ -12099,7 +12034,6 @@ async function handleConvertAndLoadXlsxToDiagram() {
         if (xlsxFileInputConverter) { xlsxFileInputConverter.value = null; }
     }
 }
-
     function handleLoadFromSharePoint() {
         menuContent.style.display = 'none';
         if (!SHAREPOINT_DOWNLOAD_LINK || SHAREPOINT_DOWNLOAD_LINK === "YOUR_SHAREPOINT_DIRECT_DOWNLOAD_LINK_HERE.xlsx") {
@@ -12585,8 +12519,6 @@ function addProcessToSimulation() {
         });
         return isValid;
     }
-
-
 // === POCZĄTEK OSTATECZNEJ WERSJI FUNKCJI ===
 // NOWA WERSJA (POPRAWIONA)
 function runOrUpdateSimulation() {
@@ -13053,7 +12985,6 @@ function exportSimulationReport(event) {
         }
         showNotification("Simulation parameters restored to previous state.", "info");
     }
-
 // NOWA WERSJA (POPRAWIONA)
 // NOWA WERSJA (POPRAWIONA)
 function saveSimulationScenario(event) {
@@ -13488,7 +13419,6 @@ function toggleColorsPanel(show) {
         colorsPanel.classList.remove('open');
     }
 }
-
 function setupColorControls() {
     const colorMenuButton = document.getElementById('color-controls-menu-button');
     const colorDropdown = document.getElementById('color-controls-dropdown');
