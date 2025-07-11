@@ -749,3 +749,22 @@ console.log('Root process found:', rootProcess);
 Teraz gdy klikniesz Show Dependencies, Console pokaże dokładnie gdzie występuje błąd!
 
 *Debug implementation: 2025-07-10 21:30*
+
+---
+
+## 🛠️ NOWE ZADANIE: Naprawa strzałek w trybie symulacji (WD)
+
+### Problem:
+- Strzałki w trybie symulacji nie zawsze trafiają w aktualne pozycje procesów po przesunięciu WD lub zmianie osi.
+- Możliwe objawy: strzałki "wiszą w powietrzu", nie trafiają w środek procesu, nie odświeżają się po zmianie WD.
+
+### Plan naprawy:
+1. [ ] Przeanalizować kod drawArrow i applySimulationVisuals pod kątem pobierania pozycji X/Y (czy zawsze z DOM po zmianie WD?)
+2. [ ] Upewnić się, że po każdej zmianie WD/pozycji procesu svgLayer jest czyszczony i strzałki są rysowane od nowa
+3. [ ] W drawArrow pobierać pozycje X/Y z getBoundingClientRect po każdej zmianie left/top (wymusić reflow jeśli trzeba)
+4. [ ] Dodać logi do konsoli z aktualnymi pozycjami X/Y dla węzłów i końców strzałek
+5. [ ] Przetestować przesuwanie procesu na różne WD (w tym negative) i sprawdzić czy strzałki są zawsze poprawne
+6. [ ] Zaktualizować sekcję przeglądu na końcu pliku po zakończeniu naprawy
+7. [ ] Dodać wpis do debug.md jeśli pojawi się nowy edge-case lub błąd
+
+---
