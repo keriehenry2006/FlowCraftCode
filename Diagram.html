@@ -2016,7 +2016,7 @@
             padding: 0;
             box-sizing: border-box;
             overflow: hidden;
-            z-index: 998;
+            z-index: 1010;
             flex-direction: column;
         }
         
@@ -5935,6 +5935,7 @@ body.dark-mode .status-icon-pending {
     let gUniqueDataWds = [];
     let gUniqueDueTimeHours = [];
     let gWdColumnWidth = 0;
+    let gPlotWidth = 0;
     let gPlotHeight = 0;
     let gTimeBinSizeSec = 3600;
     let gDiagramPanePadding = PADDING;
@@ -7421,17 +7422,30 @@ document.addEventListener('mouseup', (e) => {
 
     if (shortcutShowDependenciesButton) {
         shortcutShowDependenciesButton.addEventListener('click', () => {
-            console.log('Show Dependencies button clicked');
+            console.log('🔍 Show Dependencies button clicked');
             console.log('Button disabled:', shortcutShowDependenciesButton.disabled);
             console.log('Selected process ID:', currentlySelectedProcessId);
             
+            // Enhanced debugging for diagnosing the issue
+            console.log('🔍 Debug info:');
+            console.log('- processesData keys:', Object.keys(processesData));
+            console.log('- processesData length:', Object.values(processesData).flat().length);
+            console.log('- dependencyTreeSvg element:', !!dependencyTreeSvg);
+            console.log('- dependencyPanelTitle element:', !!dependencyPanelTitle);
+            
             if (shortcutShowDependenciesButton.disabled) {
-                console.log('Button is disabled, returning');
+                console.log('❌ Button is disabled, returning');
                 return;
             }
             if (currentlySelectedProcessId) {
-                console.log('Generating dependency tree for:', currentlySelectedProcessId);
+                console.log('✅ Generating dependency tree for:', currentlySelectedProcessId);
                 try {
+                    // Additional validation before calling the function
+                    const currentProcesses = getCurrentlyVisibleProcesses(true);
+                    console.log('📊 Currently visible processes:', currentProcesses.length);
+                    const targetProcess = currentProcesses.find(p => p.ID === currentlySelectedProcessId);
+                    console.log('🎯 Target process found:', !!targetProcess, targetProcess ? targetProcess["Short name"] : 'NOT FOUND');
+                    
                     generateAndShowDependencyTree(currentlySelectedProcessId);
                     toggleDependencyPanel(true);
                     filterPanel.classList.remove('open');
@@ -7442,13 +7456,14 @@ document.addEventListener('mouseup', (e) => {
                     sheetMultiSelectDropdown.style.display = 'none';
                     deleteViewConfigDropdown.style.display = 'none';
                     simulationPanel.classList.remove('open');
-                    console.log('Dependency tree generated successfully');
+                    console.log('✅ Dependency tree generated successfully');
                 } catch (error) {
-                    console.error('Error generating dependency tree:', error);
+                    console.error('💥 Error generating dependency tree:', error);
+                    console.error('Stack trace:', error.stack);
                     showNotification("Error generating dependency tree: " + error.message, "error");
                 }
             } else {
-                console.log('No process selected');
+                console.log('❌ No process selected');
                 showNotification("Please select a process node first to see its dependencies.", "info");
             }
         });
@@ -8187,10 +8202,14 @@ function fullReset() {
 
 
     function highlightTreeNodesOnDiagram() {
+        console.log('🌟 Highlight Tree Nodes button clicked');
         if (isSimulationModeActive) endSimulation();
 
         const treeNodesElements = dependencyTreeSvg.querySelectorAll('.dep-tree-node');
+        console.log('📊 Tree nodes found:', treeNodesElements.length);
+        
         if (treeNodesElements.length === 0) {
+            console.log('❌ No tree nodes found, clearing highlights');
             isTreeHighlightActive = false;
             highlightedTreeNodesIds.clear();
             renderDiagramAndRestoreState(); 
@@ -8200,12 +8219,18 @@ function fullReset() {
 
         const newHighlightedTreeIds = new Set();
         treeNodesElements.forEach(g => {
-            if (g.dataset.id) {
-                newHighlightedTreeIds.add(g.dataset.id);
+            // Use original ID for functionality, not sanitized ID
+            if (g.dataset.originalId) {
+                newHighlightedTreeIds.add(g.dataset.originalId);
+                console.log('➕ Added to highlight set:', g.dataset.originalId);
             }
         });
 
+        console.log('🎯 Total nodes to highlight:', newHighlightedTreeIds.size);
+        console.log('📋 Node IDs:', Array.from(newHighlightedTreeIds));
+
         if (newHighlightedTreeIds.size === 0) {
+            console.log('❌ No valid nodes to highlight');
             isTreeHighlightActive = false;
             highlightedTreeNodesIds.clear();
             renderDiagramAndRestoreState();
@@ -8213,6 +8238,7 @@ function fullReset() {
             return;
         }
 
+        console.log('✅ Activating tree highlight mode');
         isTreeHighlightActive = true;
         highlightedTreeNodesIds = newHighlightedTreeIds;
 
@@ -8236,9 +8262,12 @@ function fullReset() {
             });
         }
         updateStickyAxesLabels();
+        console.log('🔄 Rendering diagram with highlights...');
         renderDiagramAndRestoreState(); 
+        console.log('🔒 Closing dependency panel...');
         toggleDependencyPanel(false);
         saveStateToLocalStorage();
+        console.log('✅ Tree highlight completed');
     }
 
     function drawAllTreeDependencies() {
@@ -8299,8 +8328,8 @@ function fullReset() {
             if (nodeInfo && nodeInfo.parentId) {
                 const parentId = nodeInfo.parentId;
                 // SANITIZE: Use the same replacement to find the valid class names
-                const sanitizedParentId = parentId.replace(/\./g, '__');
-                const sanitizedCurrentNodeId = currentNodeId.replace(/\./g, '__');
+                const sanitizedParentId = parentId.replace(/[^a-zA-Z0-9_-]/g, '_');
+                const sanitizedCurrentNodeId = currentNodeId.replace(/[^a-zA-Z0-9_-]/g, '_');
                 const linkForward = dependencyTreeSvg.querySelector(`.link-from-${sanitizedParentId}-to-${sanitizedCurrentNodeId}`);
                 const linkBackward = dependencyTreeSvg.querySelector(`.link-from-${sanitizedCurrentNodeId}-to-${sanitizedParentId}`); 
                 if(linkForward) linkForward.classList.add('path-highlight');
@@ -8312,7 +8341,9 @@ function fullReset() {
         }
 
         pathNodeIds.forEach(id => {
-            const nodeEl = dependencyTreeSvg.querySelector(`.dep-tree-node[data-id="${id}"]`);
+            // SANITIZE: Use the same replacement to find the valid data-id
+            const sanitizedId = id.replace(/[^a-zA-Z0-9_-]/g, '_');
+            const nodeEl = dependencyTreeSvg.querySelector(`.dep-tree-node[data-id="${sanitizedId}"]`);
             if (nodeEl) nodeEl.classList.add('path-highlight');
         });
     }
@@ -8466,9 +8497,9 @@ function fullReset() {
                 line.setAttribute('x2', targetNode.x + nodeWidth / 2);
                 line.setAttribute('y2', targetNode.y + nodeHeight / 2);
                 line.classList.add('dep-tree-link');
-                // SANITIZE: Replace dots in IDs with double underscores to create a valid class name
-                const sanitizedSourceId = sourceNode.id.replace(/\./g, '__');
-                const sanitizedTargetId = targetNode.id.replace(/\./g, '__');
+                // SANITIZE: Replace invalid characters in IDs to create valid CSS class names
+                const sanitizedSourceId = sourceNode.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+                const sanitizedTargetId = targetNode.id.replace(/[^a-zA-Z0-9_-]/g, '_');
                 line.classList.add(`link-from-${sanitizedSourceId}-to-${sanitizedTargetId}`);
                 line.setAttribute('marker-end', 'url(#dep-arrowhead)');
                 dependencyTreeSvg.appendChild(line);
@@ -8481,7 +8512,10 @@ function fullReset() {
         nodesToDraw.forEach(node => {
             const group = document.createElementNS(SVG_NS, 'g');
             group.setAttribute('class', 'dep-tree-node');
-            group.dataset.id = node.id;
+            // SANITIZE: Replace invalid characters in ID for data-id attribute
+            const sanitizedId = node.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+            group.dataset.id = sanitizedId;
+            group.dataset.originalId = node.id; // Store original ID for functionality
             group.setAttribute('transform', `translate(${node.x}, ${node.y})`);
 
 
@@ -10168,6 +10202,7 @@ function renderDiagram() {
 
         const plotWidthDisplay = Math.max(0, diagramPane.clientWidth - Y_AXIS_LABEL_WIDTH_ORIGINAL - PADDING * 2);
         const plotHeightDisplay = Math.max(0, diagramPane.clientHeight - PADDING * 2); 
+        gPlotWidth = plotWidthDisplay;
         gPlotHeight = plotHeightDisplay;
         gWdColumnWidth = numberOfWdColumnsDisplay > 0 ? plotWidthDisplay / numberOfWdColumnsDisplay : plotWidthDisplay; 
 
@@ -10440,6 +10475,63 @@ function renderDiagram() {
                 }
             });
         }
+    }
+
+    function updateWdAxisLabels() {
+        console.log('🔄 Updating WD axis labels for:', gUniqueDataWds);
+        
+        if (!stickyXAxisContainer || stickyXAxisContainer.style.display === 'none') {
+            console.log('ℹ️ Sticky X-axis container not visible, skipping update');
+            return;
+        }
+        
+        // Clear existing WD labels
+        const existingLabels = stickyXAxisContainer.querySelectorAll('.x-axis-label');
+        existingLabels.forEach(label => label.remove());
+        
+        // Get current viewport info
+        const dcRect = diagramContainer.getBoundingClientRect();
+        const dcBorderLeftWidth = parseFloat(getComputedStyle(diagramContainer).borderLeftWidth) || 0;
+        const scrollLeft = diagramContainer.scrollLeft;
+        const stickyXContainerViewportLeft = parseFloat(stickyXAxisContainer.style.left) || 0;
+        
+        // Recreate labels with updated positions
+        const labelWidthEstimate = 50;
+        gUniqueDataWds.forEach((wd, index) => {
+            const originalLabelXCenterUnzoomed = gYAxisLabelWidthOriginal + gDiagramPanePadding + (index * gWdColumnWidth) + (gWdColumnWidth / 2);
+            const labelAbsoluteXInDiagramPane = (originalLabelXCenterUnzoomed * currentZoom);
+            const labelVisibleLeftInDC = labelAbsoluteXInDiagramPane - scrollLeft;
+            const dcScreenLeft = dcRect.left + dcBorderLeftWidth;
+            const labelScreenLeft = dcScreenLeft + labelVisibleLeftInDC;
+            const labelCenterInStickyContainer = labelScreenLeft - stickyXContainerViewportLeft;
+            
+            if (labelCenterInStickyContainer > -labelWidthEstimate / 2 && labelCenterInStickyContainer < parseFloat(stickyXAxisContainer.style.width) + labelWidthEstimate / 2) {
+                const label = document.createElement('div');
+                label.className = 'axis x-axis-label';
+                label.textContent = `WD ${wd}`;
+                label.style.position = 'absolute';
+                label.style.left = labelCenterInStickyContainer + 'px';
+                label.style.top = '50%';
+                label.style.transform = 'translate(-50%, -50%)';
+                label.dataset.wdValue = wd;
+                
+                if (currentAxisFilter.type === 'WD' && currentAxisFilter.value === wd) {
+                    label.classList.add('active-axis-filter');
+                } else {
+                    label.classList.remove('active-axis-filter');
+                }
+                
+                label.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleAxisLabelClick('WD', wd);
+                });
+                
+                stickyXAxisContainer.appendChild(label);
+                // console.log(`📍 Added WD ${wd} label at position ${labelCenterInStickyContainer}px`);
+            }
+        });
+        
+        console.log('✅ WD axis labels updated successfully');
     }
 
     function throttle(func, limit) {
@@ -12358,6 +12450,18 @@ function updateSimTargetParam(index, key, value) {
     if (simulationTargets[index]) {
         // Zapisz nową wartość w parametrach odpowiedniego procesu
         simulationTargets[index].params[key] = value;
+        
+        // Auto-update simulation when parameters change
+        console.log(`🔄 Parameter ${key} updated for process ${simulationTargets[index].id}: ${value}`);
+        
+        // Debounce mechanism to avoid excessive updates
+        clearTimeout(window.simulationUpdateTimeout);
+        window.simulationUpdateTimeout = setTimeout(() => {
+            if (isSimulationModeActive) {
+                console.log('🚀 Auto-updating simulation after parameter change...');
+                runOrUpdateSimulation();
+            }
+        }, 300); // 300ms delay to allow multiple rapid changes
     }
 }
 // === KONIEC NOWEJ, POPRAWIONEJ FUNKCJI ===
@@ -12486,14 +12590,19 @@ function addProcessToSimulation() {
 // === POCZĄTEK OSTATECZNEJ WERSJI FUNKCJI ===
 // NOWA WERSJA (POPRAWIONA)
 function runOrUpdateSimulation() {
+    console.log('🚀 runOrUpdateSimulation called with', simulationTargets.length, 'targets');
+    
     if (simulationTargets.length === 0) {
+        console.log('❌ No simulation targets found, ending simulation');
         endSimulation();
         return;
     }
 
     let isValid = true;
     // Krok 1: Walidacja danych wejściowych dla wszystkich procesów typu 'shift'
-    simulationTargets.forEach(target => {
+    console.log('📋 Validating simulation targets...');
+    simulationTargets.forEach((target, index) => {
+        console.log(`   Target ${index}: ${target.id} (${target.type}) - WD: ${target.params?.wd}, Time: ${target.params?.dueTime}`);
         if (target.type === 'shift') {
             const wdValue = parseInt(target.params.wd, 10);
             if (isNaN(wdValue)) {
@@ -12534,7 +12643,8 @@ function runOrUpdateSimulation() {
         toggleSimulationPanel(true);
     }
     
-    showNotification("Simulation is now active. View the diagram for impacts.", "success");
+    console.log('✅ Simulation updated successfully');
+    showNotification("Simulation updated. Process positions and impacts refreshed.", "success");
 }
 
 function applySimulationVisuals(newSimulatedNodeData = null) {
@@ -12564,7 +12674,25 @@ function applySimulationVisuals(newSimulatedNodeData = null) {
                 node.style.borderColor = shadeColor(baseColor, -0.3);
             }
             node.style.top = `${layout.finalY}px`;
-            node.style.left = `${layout.finalX}px`;
+            
+            // Recalculate X position based on current axis state after expansion
+            if (layout.process && layout.process.WD !== undefined) {
+                const processWd = layout.process.WD;
+                const wdIndex = gUniqueDataWds.indexOf(processWd);
+                if (wdIndex !== -1) {
+                    const newXCenter = gYAxisLabelWidthOriginal + gDiagramPanePadding + (wdIndex * gWdColumnWidth) + (gWdColumnWidth / 2);
+                    const newLeft = newXCenter - layout.width / 2;
+                    node.style.left = `${newLeft}px`;
+                    // Position recalculated for axis expansion
+                } else {
+                    // Fallback to cached position if WD not found
+                    node.style.left = `${layout.finalX}px`;
+                    console.log(`⚠️ Using cached position for ${layout.process["Short name"] || layout.process.ID} - WD ${processWd} not found in axis`);
+                }
+            } else {
+                // Fallback to cached position if no WD data
+                node.style.left = `${layout.finalX}px`;
+            }
 
             node.classList.remove('standard-blocking');
             if (processType === 'standard-blocking') node.classList.add('standard-blocking');
@@ -12592,9 +12720,22 @@ function applySimulationVisuals(newSimulatedNodeData = null) {
 
     // Krok 3: Zastosowanie styli dla głównych celów symulacji
     simulationTargets.forEach(target => {
-        let targetNodeEl = diagramPane.querySelector(`.process-node[data-id="${target.id}"]`);
-        if (!targetNodeEl) return;
-
+        // Sanitize ID for CSS selector - fix for processes with spaces like "Create FA"
+        const sanitizedId = target.id.replace(/[^a-zA-Z0-9_-]/g, '_');
+        let targetNodeEl = diagramPane.querySelector(`.process-node[data-id="${sanitizedId}"]`);
+        
+        // Fallback: try with original ID if sanitized doesn't work
+        if (!targetNodeEl) {
+            targetNodeEl = diagramPane.querySelector(`.process-node[data-id="${target.id}"]`);
+        }
+        
+        if (!targetNodeEl) {
+            console.log(`⚠️ Target node not found for process ${target.id} (sanitized: ${sanitizedId})`);
+            return;
+        }
+        
+        // console.log(`✅ Found target node for process ${target.id}`);
+        
         targetNodeEl.classList.remove('simulation-dimmed-others');
         targetNodeEl.classList.add('simulation-target-node');
 
@@ -12614,22 +12755,74 @@ function applySimulationVisuals(newSimulatedNodeData = null) {
                 const originalWd = target.originalData.WD;
                 const simWd = state.wd;
                 const wdChanged = simWd !== originalWd;
-                const timeChanged = (isNaN(originalTimeSec) && !isNaN(simTimeSec)) || (!isNaN(originalTimeSec) && isNaN(simTimeSec)) || (originalTimeSec !== simTimeSec);
+                
+                // Enhanced time change detection - handle NaN gracefully
+                const originalTimeValid = !isNaN(originalTimeSec);
+                const simTimeValid = !isNaN(simTimeSec);
+                const timeChanged = (originalTimeValid !== simTimeValid) || (originalTimeValid && simTimeValid && originalTimeSec !== simTimeSec);
+                
+                console.log(`   📊 Change detection: WD ${originalWd} → ${simWd} (${wdChanged}), Time ${originalTimeSec} → ${simTimeSec} (${timeChanged})`);
 
                 if (wdChanged || timeChanged) {
-                    const wdIndex = gUniqueDataWds.indexOf(simWd);
-                    let idealXCenter = gYAxisLabelWidthOriginal + gDiagramPanePadding + (wdIndex !== -1 ? wdIndex * gWdColumnWidth + gWdColumnWidth / 2 : gWdColumnWidth / 2);
+                    console.log(`🔄 Shifting process ${target.id}: WD ${originalWd} → ${simWd}, Time ${originalTimeSec} → ${simTimeSec}`);
+                    
+                    let wdIndex = gUniqueDataWds.indexOf(simWd);
+                    console.log(`   WD Index for ${simWd}:`, wdIndex, 'Available WDs:', gUniqueDataWds);
+                    
+                    // If WD doesn't exist in current data, add it and recalculate layout
+                    let currentWdColumnWidth = gWdColumnWidth;
+                    if (wdIndex === -1) {
+                        console.log(`   ⚠️ WD ${simWd} not found in data, adding to axis...`);
+                        gUniqueDataWds.push(simWd);
+                        gUniqueDataWds.sort((a, b) => a - b);
+                        wdIndex = gUniqueDataWds.indexOf(simWd);
+                        console.log(`   ✅ WD ${simWd} added at index ${wdIndex}, New WDs:`, gUniqueDataWds);
+                        
+                        // Immediately recalculate column width for correct positioning
+                        const newColumnCount = gUniqueDataWds.length;
+                        currentWdColumnWidth = gPlotWidth / newColumnCount;
+                        console.log(`   📐 Recalculated column width: ${gWdColumnWidth} → ${currentWdColumnWidth} (${newColumnCount} columns)`);
+                        
+                        // Update global column width for consistency
+                        gWdColumnWidth = currentWdColumnWidth;
+                        console.log('📊 Updated global gWdColumnWidth to:', gWdColumnWidth);
+                        
+                        // Schedule axis labels update without full diagram redraw
+                        setTimeout(() => {
+                            console.log('🔄 Updating WD axis labels only...');
+                            updateWdAxisLabels();
+                        }, 100);
+                    }
+                    
+                    let idealXCenter = gYAxisLabelWidthOriginal + gDiagramPanePadding + (wdIndex * currentWdColumnWidth + currentWdColumnWidth / 2);
                     let idealYCenter = PADDING + gPlotHeight / 2;
+                    
                     if (!isNaN(simTimeSec)) {
                         const binIndex = Math.min(gTimeBins.length - 1, Math.max(0, Math.floor(simTimeSec / gTimeBinSizeSec)));
                         const bin = gTimeBins[binIndex];
                         if (bin) {
                             idealYCenter = bin.yOffset + ((simTimeSec - bin.startSec) / (bin.endSec - bin.startSec + 1)) * bin.height;
                         }
+                        console.log(`   ⏰ Time positioning: ${simTimeSec}s → bin ${binIndex} → Y: ${idealYCenter}`);
+                    } else {
+                        console.log(`   ⏰ No valid time for ${target.id}, using middle Y position: ${idealYCenter}`);
                     }
-                    targetNodeEl.style.left = `${idealXCenter - targetNodeEl.offsetWidth / 2}px`;
-                    targetNodeEl.style.top = `${idealYCenter - targetNodeEl.offsetHeight / 2}px`;
+                    
+                    const newLeft = idealXCenter - targetNodeEl.offsetWidth / 2;
+                    const newTop = idealYCenter - targetNodeEl.offsetHeight / 2;
+                    
+                    console.log(`   📍 New position: (${newLeft}, ${newTop}) for WD ${simWd}`);
+                    targetNodeEl.style.left = `${newLeft}px`;
+                    targetNodeEl.style.top = `${newTop}px`;
+                    
+                    // Verification log to confirm position update
+                    setTimeout(() => {
+                        const actualLeft = parseInt(targetNodeEl.style.left);
+                        const actualTop = parseInt(targetNodeEl.style.top);
+                        console.log(`   ✅ Position verified: (${actualLeft}, ${actualTop})`);
+                    }, 50);
                 } else {
+                    console.log(`ℹ️ No changes detected for ${target.id}, keeping original position`);
                     targetNodeEl.style.left = `${layout.finalX}px`;
                     targetNodeEl.style.top = `${layout.finalY}px`;
                 }
